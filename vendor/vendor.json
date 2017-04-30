@@ -47,5 +47,11 @@
 			"revision": "d627af88ac021317a280d320986282a6dc97549a"
 		}
 	],
-	"rootPath": "github.com/capnfabs/isfabianstillalive.com"
+	"rootPath": "github.com/capnfabs/isfabianstillalive.com",
+	"heroku": {
+		"goVersion": "go1.8.1",
+		"install": [
+			"./cmd/..."
+		]
+	}
 }
