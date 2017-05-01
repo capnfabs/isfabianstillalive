@@ -20,6 +20,8 @@ var TwilioInboundPassword = os.Getenv("TWILIO_INBOUND_PASSWORD")
 var DbUrl = os.Getenv("DATABASE_URL")
 var DevMode = os.Getenv("DEV_MODE") == "1"
 
+var TimestampZone, _ = time.LoadLocation("Europe/Berlin")
+
 type Message struct {
 	gorm.Model
 	WhenReceived  time.Time `gorm:"index"`
@@ -28,6 +30,10 @@ type Message struct {
 
 func (m *Message) FriendlyReceived() string {
 	return humanize.Time(m.WhenReceived)
+}
+
+func (m *Message) TimestampReceived() string {
+	return m.WhenReceived.In(TimestampZone).Format(time.RFC1123)
 }
 
 func main() {
