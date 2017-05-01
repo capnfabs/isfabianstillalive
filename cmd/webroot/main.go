@@ -71,7 +71,6 @@ func main() {
 	twilioAuth := gin.BasicAuth(accounts)
 
 	router.Use(twilioAuth).POST("/inbound_sms", func(c *gin.Context) {
-		c.Request.BasicAuth()
 		err := c.Request.ParseForm()
 		if err != nil {
 			panic(err)
