@@ -40,7 +40,7 @@ func createSecureMiddleware() gin.HandlerFunc {
 	secureFunc := func() gin.HandlerFunc {
 		return func(c *gin.Context) {
 			err := secureMiddleware.Process(c.Writer, c.Request)
-
+			log.Println(c.Request.URL.Scheme)
 			// If there was an error, do not continue.
 			if err != nil {
 				c.Abort()
