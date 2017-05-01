@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"errors"
+
 	humanize "github.com/dustin/go-humanize"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -83,6 +85,9 @@ func main() {
 		}
 
 		messageBody := c.Request.Form.Get("Body")
+		if messageBody == "" {
+			c.AbortWithError(http.StatusBadRequest, errors.New("Expected a Body, didn't get one"))
+		}
 
 		db.Create(&Message{
 			WhenReceived:  time.Now(),
