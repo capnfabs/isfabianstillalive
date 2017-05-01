@@ -14,7 +14,6 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/unrolled/secure"
 )
 
 var TwilioInboundPassword = os.Getenv("TWILIO_INBOUND_PASSWORD")
@@ -29,31 +28,6 @@ type Message struct {
 
 func (m *Message) FriendlyReceived() string {
 	return humanize.Time(m.WhenReceived)
-}
-
-func createSecureMiddleware() gin.HandlerFunc {
-	secureMiddleware := secure.New(secure.Options{
-		AllowedHosts:  []string{"isfabianstillalive.com"},
-		IsDevelopment: DevMode,
-		SSLRedirect:   true,
-	})
-	secureFunc := func() gin.HandlerFunc {
-		return func(c *gin.Context) {
-			err := secureMiddleware.Process(c.Writer, c.Request)
-			log.Println(c.Request.URL.Scheme)
-			// If there was an error, do not continue.
-			if err != nil {
-				c.Abort()
-				return
-			}
-
-			// Avoid header rewrite if response is a redirection.
-			if status := c.Writer.Status(); status > 300 && status < 399 {
-				c.Abort()
-			}
-		}
-	}()
-	return secureFunc
 }
 
 func main() {
@@ -90,7 +64,6 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger())
-	router.Use(createSecureMiddleware())
 	router.LoadHTMLGlob("templates/*.tmpl.html")
 	router.Static("/static", "static")
 
