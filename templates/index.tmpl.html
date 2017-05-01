@@ -8,11 +8,11 @@
 </div>
 <div class="container">
   {{ with .Newest }}
-    <h5>* he last wrote in <span class="ftimestamp">{{ .FriendlyReceived }}</span>, saying</h5>
+    <h5>* he last texted in <span class="ftimestamp">{{ .FriendlyReceived }}</span>, saying</h5>
     <blockquote><p class="lead">{{ .StringContent }}</p></blockquote>
     <h4>here are some other recent updates:</h4>
   {{ else }}
-    <h5>*he hasn't written in for a while, but he probably just forgot that this website even existed.</h5>
+    <h5>*he hasn't texted in for a while, but he probably just forgot that this website even existed.</h5>
       <p>You should go look for him on <a class="label label-primary" href="https://facebook.com">Facebook</a> or send him a message instead, I guess.
       </p>
     <h4>here's the latest:</h4>
