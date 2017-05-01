@@ -10,7 +10,7 @@
   <p>here are the last ten updates:</p>
   <ul>
     {{ range .LastUpdates }}
-      <li>{{ .StringContent }}</li>
+      <li>{{.FriendlyReceived}} {{ .StringContent }}</li>
     {{ else }}
       <li>(None yet)</li>
     {{ end }}

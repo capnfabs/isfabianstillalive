@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -20,6 +21,10 @@ type Message struct {
 	gorm.Model
 	WhenReceived  time.Time `gorm:"index"`
 	StringContent string
+}
+
+func (m *Message) FriendlyReceived() string {
+	return humanize.Time(m.WhenReceived)
 }
 
 func main() {
@@ -57,7 +62,7 @@ func main() {
 
 	router.GET("/", func(c *gin.Context) {
 		var lastUpdates []Message
-		db.Order("when_received").Limit(10).Find(&lastUpdates)
+		db.Order("when_received desc").Limit(10).Find(&lastUpdates)
 		data := struct {
 			LastUpdates []Message
 		}{
