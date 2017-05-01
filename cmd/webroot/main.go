@@ -18,7 +18,6 @@ var DbUrl = os.Getenv("DATABASE_URL")
 
 type Message struct {
 	gorm.Model
-	ID            uint      `gorm:"primary_key"`
 	WhenReceived  time.Time `gorm:"index"`
 	StringContent string
 }
