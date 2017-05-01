@@ -18,7 +18,8 @@ var DbUrl = os.Getenv("DATABASE_URL")
 
 type Message struct {
 	gorm.Model
-	WhenReceived  time.Time
+	ID            uint      `gorm:"primary_key"`
+	WhenReceived  time.Time `gorm:"index"`
 	StringContent string
 }
 
@@ -56,11 +57,12 @@ func main() {
 	router.Static("/static", "static")
 
 	router.GET("/", func(c *gin.Context) {
-		lastUpdate := "Hi Mum!"
+		var lastUpdates []Message
+		db.Order("when_received").Limit(10).Find(&lastUpdates)
 		data := struct {
-			LastUpdate string
+			LastUpdates []Message
 		}{
-			lastUpdate,
+			lastUpdates,
 		}
 		c.HTML(http.StatusOK, "index.tmpl.html", data)
 	})

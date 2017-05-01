@@ -7,8 +7,14 @@
   </div>
 </div>
 <div class="container">
-  <p>he wrote this an hour ago via SMS:</p>
-  {{ .LastUpdate }}
+  <p>here are the last ten updates:</p>
+  <ul>
+    {{ range .LastUpdates }}
+      <li>{{ .StringContent }}</li>
+    {{ else }}
+      <li>(None yet)</li>
+    {{ end }}
+  </ul>
 </div>
 
 </body>
