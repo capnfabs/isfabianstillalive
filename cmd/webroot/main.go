@@ -88,7 +88,7 @@ func makeSslMiddleware() gin.HandlerFunc {
 				return
 			}
 
-			// Avoid header rewrite if response is a redirection.
+			// If we're redirecting, we're done! Don't do anything else downstream.
 			if status := c.Writer.Status(); status > 300 && status < 399 {
 				c.Abort()
 			}
