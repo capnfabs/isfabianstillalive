@@ -1,4 +1,3 @@
-// go install github.com/capnfabs/isfabianstillalive.com/cmd/webroot && heroku local
 package main
 
 import (
@@ -16,24 +15,58 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// The password that the twilio inbound webhook uses. Must be set.
 var TwilioInboundPassword = os.Getenv("TWILIO_INBOUND_PASSWORD")
+
+// Postgres database URL. If not specified, app defaults to a local sqlite database.
 var DbUrl = os.Getenv("DATABASE_URL")
+
+// DEVELOPER MODE! A bunch of packages use this paradigm, we set them all with a single
+// flag. Defaults to OFF.
 var DevMode = os.Getenv("DEV_MODE") == "1"
 
+// We render timestamps in 'long format' using this location. It would be heaps better to
+// just dump these in ISO1234 (or whatever) format and then do them in javascript based on client
+// timezone but...
 var TimestampZone, _ = time.LoadLocation("Europe/Berlin")
 
+// Message represents a text message received from our 'secret' Twilio phone number (yep, that's
+// going to bite if I don't add some kind of authentication to ensure that messages are from me).
 type Message struct {
 	gorm.Model
-	WhenReceived  time.Time `gorm:"index"`
+	// WhenReceived probably isn't necessary because gorm.Model has WhenCreated, but it seems
+	// cleaner to me from a separation of concerns perspective to include it, I guess. *shrug*.
+	// We also index on it so that lookups are fast.
+	WhenReceived time.Time `gorm:"index"`
+	// StringContent is the actual, received message content.
 	StringContent string
 }
 
+// FriendlyReceived returns a 'humanized' version of the timestamp. Again, would be better to do
+// this in JS based on the timestamp (see comment on TimestampZone)
 func (m *Message) FriendlyReceived() string {
 	return humanize.Time(m.WhenReceived)
 }
 
+// TimestampReceived returns a precise version of the timestamp (but still for human consumption).
+// Would be better to do this formatting in JS - again, see comment on TimestampZone.
 func (m *Message) TimestampReceived() string {
 	return m.WhenReceived.In(TimestampZone).Format(time.RFC1123)
+}
+
+// Returns an open database or panics. The next thing you should do is call `defer db.Close()`.
+func mustCreateDatabase() *gorm.DB {
+	var err error
+	var db *gorm.DB
+	if DbUrl == "" {
+		db, err = gorm.Open("sqlite3", "local.db")
+	} else {
+		db, err = gorm.Open("postgres", DbUrl)
+	}
+	if err != nil {
+		panic("failed to connect to database " + DbUrl)
+	}
+	return db
 }
 
 func main() {
@@ -47,19 +80,10 @@ func main() {
 		log.Fatal("$TWILIO_INBOUND_PASSWORD must be set")
 	}
 
-	var err error
-	var db *gorm.DB
-	if DbUrl == "" {
-		db, err = gorm.Open("sqlite3", "local.db")
-	} else {
-		db, err = gorm.Open("postgres", DbUrl)
-	}
-	if err != nil {
-		panic("failed to connect to database " + DbUrl)
-	}
+	db := mustCreateDatabase()
 	defer db.Close()
 
-	// Migrate the schema
+	// Migrate the schema.
 	db.AutoMigrate(&Message{})
 
 	if DevMode {
@@ -73,6 +97,7 @@ func main() {
 	router.LoadHTMLGlob("templates/*.tmpl.html")
 	router.Static("/static", "static")
 
+	// index.html
 	router.GET("/", func(c *gin.Context) {
 		var lastUpdates []Message
 		db.Order("when_received desc").Limit(10).Find(&lastUpdates)
@@ -89,6 +114,7 @@ func main() {
 		c.HTML(http.StatusOK, "index.tmpl.html", data)
 	})
 
+	// auth middleware for the inbound sms endpoint
 	accounts := gin.Accounts{
 		"twilio": TwilioInboundPassword,
 	}
@@ -102,6 +128,7 @@ func main() {
 
 		messageBody := c.Request.Form.Get("Body")
 		if messageBody == "" {
+			// We include this because my test requests were adding a stack of blank entries :-/
 			c.AbortWithError(http.StatusBadRequest, errors.New("Expected a Body, didn't get one"))
 		}
 
@@ -111,5 +138,6 @@ func main() {
 		})
 	})
 
+	// Ok, los geht's!
 	router.Run(":" + port)
 }
