@@ -13,6 +13,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/unrolled/secure"
 )
 
 // The password that the twilio inbound webhook uses. Must be set.
@@ -69,6 +70,46 @@ func mustCreateDatabase() *gorm.DB {
 	return db
 }
 
+func makeSslMiddleware() gin.HandlerFunc {
+	secureMiddleware := secure.New(secure.Options{
+		SSLRedirect: true,
+		FrameDeny:   true,
+		// See https://jaketrent.com/post/https-redirect-node-heroku/ for why this is required
+		SSLProxyHeaders: map[string]string{"X-Forwarded-Proto": "https"},
+		IsDevelopment:   DevMode,
+	})
+	return func() gin.HandlerFunc {
+		return func(c *gin.Context) {
+			err := secureMiddleware.Process(c.Writer, c.Request)
+
+			// If there was an error, do not continue.
+			if err != nil {
+				c.Abort()
+				return
+			}
+
+			// Avoid header rewrite if response is a redirection.
+			if status := c.Writer.Status(); status > 300 && status < 399 {
+				c.Abort()
+			}
+		}
+	}()
+}
+
+var sslMiddleware = func(c *gin.Context) {
+	if DevMode {
+		// Don't ssl redirect in dev mode
+		return
+	}
+	if c.Request.Header.Get("x-forwarded-proto") != "https" {
+		newrl := *c.Request.URL
+		newrl.Scheme = "https"
+		c.Redirect(http.StatusMovedPermanently, newrl.String())
+		// Don't let anything else downstream handle this request.
+		c.Abort()
+	}
+}
+
 func main() {
 	port := os.Getenv("PORT")
 
@@ -94,6 +135,7 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger())
+	router.Use(makeSslMiddleware())
 	router.LoadHTMLGlob("templates/*.tmpl.html")
 	router.Static("/static", "static")
 
