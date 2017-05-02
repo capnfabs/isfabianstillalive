@@ -4,7 +4,7 @@ body,
     color: white;
 }
 
-/** Friendly timestamp */
+/* Friendly timestamp */
 .ftimestamp {
     border-bottom: 1px dotted white;
     cursor: pointer;
