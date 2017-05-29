@@ -96,20 +96,6 @@ func makeSslMiddleware() gin.HandlerFunc {
 	}()
 }
 
-var sslMiddleware = func(c *gin.Context) {
-	if DevMode {
-		// Don't ssl redirect in dev mode
-		return
-	}
-	if c.Request.Header.Get("x-forwarded-proto") != "https" {
-		newrl := *c.Request.URL
-		newrl.Scheme = "https"
-		c.Redirect(http.StatusMovedPermanently, newrl.String())
-		// Don't let anything else downstream handle this request.
-		c.Abort()
-	}
-}
-
 func main() {
 	port := os.Getenv("PORT")
 
