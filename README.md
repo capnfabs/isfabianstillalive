@@ -2,6 +2,8 @@
 
 Should be a relatively simple question, but my friends and relatives keep asking for updates over SMS.
 
+This was a website that I had up and running in May 2017 before a solo trip into the Caucuses. It's not running any more, but the code is still here and there's a [saved copy at archive.org](http://web.archive.org/web/20170529193805/https://isfabianstillalive.com/).
+
 ## Run with: 
 
 You should already have heroku tools and go installed.
@@ -20,6 +22,12 @@ go get -u github.com/kardianos/govendor
 # because of some application verification thing I guess; I can't really
 # remember. You can ditch that if you're on linux.
 govendor install -ldflags -s ./cmd/... && heroku local
+```
+
+## Deploy with
+
+```sh
+git push heroku master
 ```
 
 ## How is the code set up?
