@@ -2,7 +2,7 @@
 
 Should be a relatively simple question, but my friends and relatives keep asking for updates over SMS.
 
-This was a website that I had up and running in May 2017 before a solo trip into the Caucuses. It's not running any more, but the code is still here and there's a [saved copy at archive.org](http://web.archive.org/web/20170529193805/https://isfabianstillalive.com/).
+This was a website that I had up and running in May 2017 before a solo trip into the Caucuses. It's not running any more, but the code is still here and there's a blog post with lots of info at https://capnfabs.net/posts/is-fabian-still-alive/.
 
 ## Run with: 
 
